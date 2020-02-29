@@ -131,3 +131,85 @@
 - **Field：表示成员变量**，用于获取实例变量和静态变量等
 - **Method：表示方法**，用于获取类中的方法参数和方法类型等
 - **Constructor：表示构造器**，用于获取构造器的相关参数和类型等
+
+
+
+## 异常
+
+
+
+### Exception和Error的区别
+
+- **Exception**是程序正常运行中**预料到可能会出现**的错误，并且应该被捕获并进行相应的处理，是一种**异常**现象
+- **Error**是正常情况下不可能发生的错误，**Error会导致JVM处于一种不可恢复的状态**，不需要捕获处理，比如说OutOfMemoryError
+
+
+
+## 值传递和引用传递
+
+- **值传递，**意味着传递了对象的一个副本，即使副本被改变，也不会影响源对象。
+- **引用传递，**意味着传递的并不是实际的对象，而是对象的引用。因此，外部对引用对象的改变会反映到所有的对象上。
+
+
+
+## 三大集合
+
+
+
+### 常见集合
+
+Java中的常见集合可以概括如下。
+
+- **Map接口和Collection接口是所有集合框架的父接口**
+- Collection接口的子接口包括：Set接口和List接口
+- Map接口的实现类主要有：**HashMap**、TreeMap、Hashtable、LinkedHashMap、**ConcurrentHashMap**以及Properties等
+- Set接口的实现类主要有：HashSet、TreeSet、LinkedHashSet等
+- List接口的实现类主要有：**ArrayList**、**LinkedList**、Stack以及Vector等
+
+
+
+### HashMap和Hashtable的区别
+
+HashMap和Hashtable之间的区别可以总结如下。
+
+- HashMap没有考虑同步，是线程不安全的；Hashtable使用了synchronized关键字，是线程安全的；
+- HashMap允许null作为Key；Hashtable不允许null作为Key，Hashtable的value也不可以为null
+
+
+
+### 快速失败（fast-fail）机制
+
+- HashMap和Hashtable都有fast-fail（Hashtable本身虽然线程安全,但是对Hashtable返回的任何形式collection使用Iterator都是会快速失败的）。
+- 快速失败是Java集合的一种**错误检测机制**，当多个线程对集合进行结构上的改变的操作时，**有可能**会产生fail-fast。
+
+- 异常的抛出条件是检测到 modCount != expectedmodCount。
+- 场景：java.util包下的集合类都是快速失败的，不能在多线程下发生并发修改（迭代过程中被修改）。
+
+
+
+### 安全失败（fail—safe）机制
+
+- 原理：迭代时是对原集合的拷贝进行遍历。
+- 场景：java.util.concurrent包下的容器都是安全失败，可以在多线程下并发使用，并发修改。
+
+
+
+### HashMap
+
+- 底层实现：HashMap底层实现数据结构为**数组+链表**的形式，JDK8及其以后的版本中使用了**数组+链表+红黑树**实现，解决了链表太长导致的查询速度变慢的问题。
+
+- HashMap的初始容量16，加载因子为0.75，扩容增量是原容量的1倍。如果HashMap的容量为16，一次扩容后容量为32。HashMap扩容是指元素个数**（包括数组和链表+红黑树中）**超过了16*0.75=12之后开始扩容。
+
+
+
+## Java 内存模型
+
+
+
+### Java回收算法
+
+- 标记-复制算法
+
+- 标记-清理
+
+- 标记-整理
