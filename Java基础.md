@@ -290,3 +290,106 @@ wait方法就是使当前线程等待该对象的锁，当前线程必须是该�
 
 - ### 为什么不能显示直接调用finalize方法？
    如前文所述，finalize方法在垃圾回收时一定会被执行，而如果在此之前显示执行的话，也就是说finalize会被执行两次以上，而在第一次资源已经被释放，那么在第二次释放资源时系统一定会报错，因此一般finalize方法的访问权限和父类保持一致，为protected。
+
+
+
+## 多线程
+
+### 实现方式
+
+- **继承Thread类**
+
+  ```java
+  public class MyThread extends Thread {  
+     public void run() {  
+         System.out.println("MyThread.run()");  
+     }  
+  }  
+  MyThread myThread1 = new MyThread();             myThread1.start();  
+  MyThread myThread2 = new MyThread();             myThread2.start();  
+  ```
+
+- **实现Runnable接口**
+
+  如果自己的类已经extends另一个类，就无法直接extends Thread，此时，可以实现一个Runnable接口
+
+  ```java
+  public class MyThread extends OtherClass implements Runnable {  
+      public void run() {  
+          System.out.println("MyThread.run()");  
+      }  
+  }
+  
+  MyThread myThread = new MyThread();       
+  Thread thread = new Thread(myThread);        
+  thread.start();  
+  ```
+
+- **实现Callable接口通过FutureTask包装器来创建Thread线程**
+
+  ```java
+  public interface Callable<V>   { 
+      V call（） throws Exception;   
+  } 
+   
+  public class SomeCallable<V> extends OtherClass implements Callable<V> {
+      @Override
+      public V call() throws Exception {
+          return null;
+      }
+  }
+   
+  Callable<V> oneCallable = new SomeCallable<V>();   
+   
+  //使用Callable<Integer>创建一个FutureTask<Integer>对象：   
+  FutureTask<V> oneTask = new FutureTask<V>(oneCallable);   
+   
+  //注释：FutureTask<Integer>是一个包装器，它通过接受Callable<Integer>来创建，它同时实现了Future和Runnable接口。 
+  //由FutureTask<Integer>创建一个Thread对象：   
+  Thread oneThread = new Thread(oneTask);       
+  oneThread.start();   
+  ```
+
+- **使用线程池接口ExecutorService结合Callable、Future实现有返回结果的多线程**
+
+  ```java
+  int taskSize = 5;
+  // 创建一个线程池
+  ExecutorService pool = Executors.newFixedThreadPool(taskSize);
+  // 创建多个有返回值的任务
+  List<Future> list = new ArrayList<Future>();
+  for (int i = 0; i < taskSize; i++) {
+  	Callable c = new MyCallable(i + " ");
+  	// 执行任务并获取Future对象
+  	Future f = pool.submit(c);
+  	list.add(f);
+  }
+  // 关闭线程池
+  pool.shutdown();
+  // 获取所有并发任务的运行结果
+  for (Future f : list) {
+  	// 从Future对象上获取任务的返回值，并输出到控制台
+  	System.out.println(">>>" + f.get().toString());
+  }
+  ```
+
+  - ExecutorService的sunbmit方法和excutor方法区别
+
+    两者都是将一个线程任务添加到线程池中并执行；
+
+    - excutor没有返回值，submit有返回值，并且返回执行结果Future对象
+    - excutor不能提交Callable任务，只能提交Runnable任务，submit两者任务都可以提交
+    - 在submit中提交Runnable任务，会返回执行结果Future对象，但是Future调用get方法将返回null（Runnable没有返回值）
+      
+
+### Runnable和Callable的区别
+
+- **相同点**：
+  - 都是接口
+  - 可用来编写多线程程序
+  - 都需要调用Thread.start()启动线程
+- **不同点**：
+  - 实现Callable接口的任务线程能返回执行结果；而实现Runnable接口的任务线程不能返回结果
+  - Callable接口的call()方法允许抛出异常；而Runnable接口的run()方法的异常只能在内部消化，不能继续上抛
+- **注意点**：
+  - Callable接口支持返回执行结果，此时需要调用FutureTask.get()方法实现，此方法会阻塞主线程直到获取‘将来’结果；当不调用此方法时，主线程不会阻塞！
