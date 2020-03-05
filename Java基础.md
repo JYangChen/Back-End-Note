@@ -177,6 +177,15 @@ HashMap和Hashtable之间的区别可以总结如下。
 
 
 
+### ConcurrentHashMap和Hashtable的区别
+
+- **ConcurrentHashMap结合了HashMap和Hashtable二者的优势。**HashMap没有考虑同步，Hashtable考虑了同步的问题。但是Hashtable在每次同步执行时都要锁住整个结构。
+
+- ConcurrentHashMap锁的方式是稍微细粒度的，ConcurrentHashMap将hash表分为16个桶（默认值），诸如get，put，remove等常用操作只锁上当前需要用到的桶。
+- **单线程环境下可以使用HashMap，多线程环境下可以使用ConcurrentHashMap**
+
+
+
 ### 快速失败（fast-fail）机制
 
 - HashMap和Hashtable都有fast-fail（Hashtable本身虽然线程安全,但是对Hashtable返回的任何形式collection使用Iterator都是会快速失败的）。
@@ -199,9 +208,139 @@ HashMap和Hashtable之间的区别可以总结如下。
 - 底层实现：HashMap底层实现数据结构为**数组+链表**的形式，JDK8及其以后的版本中使用了**数组+链表+红黑树**实现，解决了链表太长导致的查询速度变慢的问题。
 
 - HashMap的初始容量16，加载因子为0.75，扩容增量是原容量的1倍。如果HashMap的容量为16，一次扩容后容量为32。HashMap扩容是指元素个数**（包括数组和链表+红黑树中）**超过了16*0.75=12之后开始扩容。
+
 - 将一个键值对插入HashMap中，通过**将Key的hash值与length-1进行&运算**，实现了当前Key的定位，2的幂次方的容量可以减少冲突（碰撞）的次数，提高HashMap查询效率。
 
+- 加载因子，如果设置太小不利于空间利用，设置太大则会导致碰撞增多，降低了查询效率，所以设置了0.75。
 
+- ### HasMap的存储和获取原理：
+
+  - 当**调用put()方法传递键和值来存储时**，先对键调用hashCode()方法，返回的hashCode用于**找到bucket位置来储存Entry对象**，也就是找到了该元素应该被存储的**桶中（数组）**。当两个键的hashCode值相同时，bucket位置发生了冲突，也就是**发生了Hash冲突**，这个时候，会在每一个bucket后边接上一个链表（JDK8及以后的版本中还会加上红黑树）来解决，将新存储的键值对放在表头（也就是bucket中）。
+
+  - 当调用get方法**获取存储的值**时，首先根据键的hashCode找到对应的bucket，然后根据equals方法来在链表和红黑树中找到对应的值。
+
+- ### HasMap的扩容步骤：
+
+  HashMap里面默认的负载因子大小为0.75，也就是说，当Map中的元素个数**（包括数组，链表和红黑树中）**超过了16*0.75=12之后开始扩容。将会创建原来HashMap大小的两倍的bucket数组，来重新调整map的大小，并将原来的对象放入新的bucket数组中。这个过程叫作**rehashing**，因为它调用hash方法找到新的bucket位置。
+
+- ### 解决Hash冲突的方法：
+
+  - 拉链法 **（HashMap使用的方法）**
+  - 线性探测再散列法
+  - 二次探测再散列法
+  - 伪随机探测再散列法
+
+- ### 适合作为HashMap的键的类：
+
+  String和Interger这样的包装类
+
+  - final类型的类，而且**重写了equals和hashCode方法**，避免了键值对改写，有效提高HashMap性能
+
+
+
+### ConcurrentHashMap的具体实现方式(分段锁):
+
+- 该类包含两个**静态内部类MapEntry和Segment**，前者用来封装映射表的键值对，后者用来充当锁的角色
+- **Segment**是一种**可重入的锁ReentrantLock**，每个Segment守护一个HashEntry数组里得元素，当对HashEntry数组的数据进行修改时，必须首先获得对应的Segment锁。
+
+### TreeMap
+
+- **特性**
+
+  - TreeMap底层使用**红黑树**实现，TreeMap中存储的键值对**按照键来排序**。
+
+  - 如果Key存入的是字符串等类型，那么会按照字典默认顺序排序
+
+  - 如果传入的是自定义引用类型，比如说User，那么该对象必须实现Comparable接口，并且覆盖其compareTo方法；创建TreeMap的时候，我们必须指定使用的比较器
+
+    ```java
+    // 方式一：定义该类的时候，就指定比较规则
+    class User implements Comparable{
+        @Override
+        public int compareTo(Object o) {
+            // 在这里边定义其比较规则
+            return 0;
+        }
+    }
+    public static void main(String[] args) {
+        // 方式二：创建TreeMap的时候，可以指定比较规则
+        new TreeMap<User, Integer>(new Comparator<User>() {
+            @Override
+            public int compare(User o1, User o2) {
+                // 在这里边定义其比较规则
+                return 0;
+            }
+        });
+    }
+    ```
+
+### Comparable接口和Comparator接口有哪些区别呢？
+
+- Comparable实现比较简单，但是当需要重新定义比较规则的时候，**必须修改源代码**，即修改User类里边的compareTo方法
+- Comparator接口不需要修改源代码，只需要在创建TreeMap的时候**重新传入一个具有指定规则的比较器**即可。
+
+### ArrayList和LinkedList有哪些区别？
+
+- ArrayList底层使用了**动态数组**实现，实质上是一个动态数组
+- LinkedList底层使用了**双向链表**实现，可当作堆栈、队列、双端队列使用
+- ArrayList在**随机存取**方面效率高于LinkedList
+- LinkedList在节点的**增删方面**效率高于ArrayList
+- ArrayList必须预留一定的空间，当空间不足的时候，会进行扩容操作
+- LinkedList的开销是必须存储节点的信息以及节点的指针信息
+- **Vector**，它**是线程安全的ArrayList**，但是已经被废弃，不推荐使用了。多线程环境下，我们可以使用CopyOnWriteArrayList替代ArrayList来保证线程安全
+
+###  HashSet和TreeSet有哪些区别？
+
+- **HashSet底层使用了Hash表实现。**
+
+保证元素唯一性的原理：判断元素的hashCode值是否相同。如果相同，还会继续判断元素的equals方法，是否为true
+
+- **TreeSet底层使用了红黑树来实现。**
+
+保证元素唯一性是通过Comparable或者Comparator接口实现
+
+
+
+### LinkedHashMap和LinkedHashSet
+
+**LinkedHashMap可以记录下元素的插入顺序和访问顺序**，具体实现如下：
+
+- LinkedHashMap内部的Entry继承于HashMap.Node，这两个类都实现了Map.Entry<K,V>
+- LinkedHashMap的Entry不光有value，next，还有before和after属性，这样通过一个双向链表，**保证了各个元素的插入顺序**
+- 通过构造方法public LinkedHashMap(int initialCapacity,float loadFactor,boolean accessOrder)， **accessOrder传入true可以实现LRU缓存算法（访问顺序）**
+- **LinkedHashSet 底层使用LinkedHashMap实现**，两者的关系类似与HashMap和HashSet的关系
+
+**LRU（Least recently used，最近最少使用）算法**根据数据的历史访问记录来进行淘汰数据，其核心思想是“如果数据最近被访问过，那么将来被访问的几率也更高”。
+
+### List和Set的区别
+
+- List是有序的并且元素是**可以重复**的
+- Set是无序（LinkedHashSet除外）的，并且元素是**不可以重复**的
+  （此处的有序和无序是指**放入顺序和取出顺序**是否保持一致）
+
+### Iterator和ListIterator的区别
+
+- Iterator可以遍历list和set集合；ListIterator只能用来遍历list集合
+- Iterator前者只能前向遍历集合；ListIterator可以前向和后向遍历集合
+- ListIterator其实就是实现了前者，并且增加了一些新的功能。
+
+### 数组和集合List之间的转换
+
+- ### 数组转为集合List：
+
+  - 通过Arrays.asList方法搞定，转换之后不可以使用add/remove等修改集合的相关方法，因为该方法返回的**其实是一个Arrays的内部私有的一个类ArrayList**，该类继承于Abstractlist，并没有实现这些操作方法，调用将会直接抛出UnsupportOperationException异常。这种转换体现的是一种**适配器模式**，只是转换接口，本质上还是一个数组。
+
+- ### 集合转换数组：
+
+  - List.toArray方法搞定了集合转换成数组，这里**最好传入一个类型一样的数组**，大小就是list.size()。因为如果入参分配的数组空间不够大时，toArray方法内部将重新分配内存空间，并返回新数组地址；如果数组元素个数大于实际所需，下标为list.size()及其之后的数组元素将被置为null，其它数组元素保持原值。所以，建议该方法入参数组的大小与集合元素个数保持一致。
+
+  - 若是**直接使用toArray无参方法**，此方法返回值只能是Object[ ]类，若强转其它类型数组将出现**ClassCastException**错误。
+
+### Collection和Collections
+
+- Collection是一个顶层集合接口，其子接口包括List和Set；
+- Collections是一个集合工具类，可以操作集合，比如说排序，二分查找，拷贝集合，寻找最大最小值等。 
+- 总而言之：带s的大都是工具类。
 
 ## JVM
 
