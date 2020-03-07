@@ -530,7 +530,6 @@ Java堆的内存划分如图所示，分别为年轻代、Old Memory（老年代
     - 准备：为类的静态变量分配内存，并将其初始化为默认值
     - 解析：把类中的符号引用转化为直接引用（比如说方法的符号引用，是有方法名和相关描述符组成，在解析阶段，JVM把符号引用替换成一个指针，这个指针就是直接引用，它指向该类的该方法在方法区中的内存位置）
   - 初始化：为类的静态变量赋予正确的初始值。当静态变量的等号右边的值是一个常量表达式时，不会调用static代码块进行初始化。只有等号右边的值是一个运行时运算出来的值，才会调用static初始化。****
-
 - 双亲委派模型：
   - 当一个类加载器收到类加载请求的时候，它首先不会自己去加载这个类的信息，而是把该
     请求转发给父类加载器，依次向上。所以所有的类加载请求都会被传递到父类加载器中，只有当父类加载器中无法加载到所需的类，子类加载器才会自己尝试去加载该类。当当前类加载器和所有父类加载器都无法加载该类时，抛出ClassNotFindException异常。
@@ -541,11 +540,9 @@ Java堆的内存划分如图所示，分别为年轻代、Old Memory（老年代
     - 由同一个类加载器加载并且拥有相同包名的类组成运行时包
     - 只有属于同一个运行时包的类，才能访问包可见（default）的类和类成员。作用是 限制用户自定义的类冒充核心类库的类去访问核心类库的包可见成员。
   - 加载两份相同的class对象的情况：A和B不属于父子类加载器关系，并且各自都加载了同一个类。
-
 - 特点：
   1、全盘负责：当一个类加载器加载一个类时，该类所依赖的其他类也会被这个类加载器加载到内存中。
   2、缓存机制：所有的Class对象都会被缓存，当程序需要使用某个Class时，类加载器先从缓存中查找，找不到，才从class文件中读取数据，转化成Class对象，存入缓存中。
-
 - 类加载器：
   两种类型的类加载器：
 
@@ -590,7 +587,71 @@ Java堆的内存划分如图所示，分别为年轻代、Old Memory（老年代
       - 可以从指定位置加载class文件，比如说从数据库、云端加载class文件
       - 加密：Java代码可以被轻易的反编译，因此，如果需要对代码进行加密，那么加密以后的代码，就不能使用Java自带的ClassLoader来加载这个类了，需要自定义ClassLoader，对这个类进行解密，然后加载。
 
-  
+
+###  引用
+
+- 强引用
+
+  - 最普遍的引用：Object obj = new Object();
+
+  - 抛出 OutOfMemoryError 终止程序也不会回收具有强引用的对象
+
+  - 通过将对象设置为 null 来弱化引用，使其被回收
+
+- 软引用
+
+  - 对象处在有用但非必需的状态
+
+  - 只有当内存空间不足时，GC会回收该引用的对象的内存
+
+  - 可以用来实现告诉缓存
+
+```java
+String str = new String("abc"); // 强引用
+SoftReference<String> softRef = new SoftReference<String>(str); //软引用
+```
+
+SoftReference<String> softRef = new SoftReference<String>(str); //
+
+软引用
+
+- 弱引用
+
+  - 非必需对象，比软引用更弱一些
+
+  - GC时会被回收
+
+  - 被回收的概率也不大，因为GC线程的优先级比较低
+
+  - 适用于引用偶尔被使用且不影响垃圾收集的对象
+
+```java
+String str = new String("abv");
+
+WeakReference<String> weakRef = new WeakReference<String>(str);
+```
+
+WeakReference<String> weakRef = new WeakReference<String>(str);
+
+- 虚引用
+
+  - 不会决定对象的生命周期
+
+  - 任何时候都可能被垃圾收集器回收
+
+  - 跟踪对象被垃圾收集器回收的活动，起哨兵作用
+
+  - 必须和引用队列 ReferenceQueue联合使用
+
+```java
+String str = new String("abc");
+
+ReferenceQueue queue = new ReferenceQueue();
+
+PhantomReference ref = new PhantomReference(str, queue);
+```
+
+GC垃圾收集器发现一个虚引用对象的时候，会将它放进它绑定的 queue中，所以判断queue是否有值就可以判断是否被回收
 
 
 
