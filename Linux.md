@@ -60,7 +60,127 @@ r=4，w=2，x=1，-=0
 
 ## 常见命令
 
+### find
+
+```shell
+# 从当前目录开始往下查找
+find -name "target.java"
+# 全局搜索
+find / -name "target.java"
+# 查找用户目录下以 target 打头的文件
+find ~ -name "target*"
+# 查找用户目录下以 target 打头的文件（忽略大小写）
+find ~ -iname "target*"
+```
+
+### 管道操作符“|”
+
+- 可将指令连接起来，前一个指令的输出作为后一个指令的输入
+
+- 会把前一个指令的正确输出作为后一个指令的输入，错误输出无法处理
+
+### grep
+
+使用正则表达式搜索文本 , 并把匹配的行打印出来
+
+- **查找文件file.log中“passport”字段：**
+
+> grep “passport” file.log
+
+- **查找文件file.log中“passport”字段，并且统计出出现次数：**
+
+> grep “passport” file.log |wc –l
+>
+> grep “passport” file.log –c
+
+
+
+### awk
+
+- 语法：awk [options] 'cmd' file
+
+- 一次读取一行文本，按输入分隔符进行切片，切成多个组成部分
+
+- 将切片直接保存在内建的变量中，$1,$2,...($0表示行的全部)
+
+- 支持对单个切片的判断，支持循环判断，默认分隔符为空格
+
+```shell
+awk '{print $1,$4}' netstat.txt
+# 打印出第一个空为tcp 第二个空为1的行
+awk '$1=="tcp" && $2==1{print $0}' netstat.txt
+# 按逗号分隔行内容
+awk -F ","'{print $2}' test.txt
+```
 
 
 
 
+
+### top和ps命令：探测进程
+
+**ps命令**,默认只会显示运行在当前控制台下的属于当前用户的进程。
+
+- ps –A和ps –e可以显示所有进程
+- ps -ef 显示完整格式的所有进程
+- 指定进程名，ps -ef | grep“java”找出进程名中包括java的所有进程
+
+**top命令**
+
+![1](img\linux\1.png)
+
+- 第一行显示了当前时间、系统的运行时间、登录的用户数和系统的平均负载（平均负载有3个值：最近1min 5min 15min）。
+- 第二行显示了进程的概要信息，有多少进程处于运行、休眠、停止或者僵化状态。
+- 第三行是CPU的概要信息。
+- 第四行是系统内存的状态。
+
+**ps和top命令的区别：**
+
+- ps看到的是命令执行瞬间的进程信息，而top可以持续的监视。
+- ps只是查看进程，而top还可以监视系统性能，如平均负载，cpu和内存的消耗。
+- top可以操作进程,如改变优先级(命令r)和关闭进程(命令k)。
+- ps主要是查看进程的，关注点在于查看需要查看的进程。
+- top主要看cpu，内存使用情况，及占用资源最多的进程由高到低排序，关注点在于资源占用情况。
+
+### sed命令：
+
+sed 命令是利用脚本来处理文本文件。sed 可依照脚本的指令来处理、编辑文本文件。sed 主要用来自动编辑一个或多个文件、简化对文件的反复操作、编写转换程序等。
+
+```shell
+# 将文件的第二行和第三行裁剪出来
+sed –n ‘2,3p’ test.txt
+
+# 把 Str 打头的行并将 Str 替换成 String，只输出不修改
+sed 's/^Str/String/' replace.java
+# -i 修改文件内容
+sed -i 's/^Str/String/' replace.java
+# 把 . 结尾的行的 . 替换成 ;
+sed -i 's/\.$/\;/' replace.java
+# 把 Jack 替换成 me，只替换第一个
+sed -i 's/Jack/me/' replace.java
+# 把 Jack 替换成 me，全文替换
+sed -i 's/Jack/me/g' replace.java
+# 把空行删除
+sed -i '/^ *$/d' replace.java
+# 把包含 Integer 的行删除
+sed -i '/Integer/d' replace.java
+```
+
+
+
+### sort命令：
+
+sort命令可以实现对文件进行排序。
+
+- 正序排序：**sort -n test.txt**
+- 反序排序：**sort –nr test.txt**
+
+根据每行字符串字典序
+
+
+
+### tail和head命令：
+
+- **tail –n 2 file.log** 可以查看文件的最后2行。
+- **tail –f file.log**可以实时查看文件的后边追加的部分。
+- **head –n 2 file.log**可以查看文件的开始2行。
