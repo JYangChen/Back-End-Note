@@ -587,6 +587,65 @@ Java堆的内存划分如图所示，分别为年轻代、Old Memory（老年代
       - 可以从指定位置加载class文件，比如说从数据库、云端加载class文件
       - 加密：Java代码可以被轻易的反编译，因此，如果需要对代码进行加密，那么加密以后的代码，就不能使用Java自带的ClassLoader来加载这个类了，需要自定义ClassLoader，对这个类进行解密，然后加载。
 
+### JVM常用内存调优命令
+
+- **jps：**主要用来输出JVM中运行的进程状态信息，一般使用jps命令来查看进程的状态信息，包括JVM启动参数等。
+- **jinfo：**主要用来观察进程运行环境参数等信息。
+- **jstack：**主要用来查看某个Java进程内的线程堆栈信息。jstack pid 可以看到当前进程中各个线程的状态信息，包括其持有的锁和等待的锁。
+- **jmap：**用来查看堆内存使用状况。jmap -heap pid可以看到当前进程的堆信息和使用的GC收集器，包括年轻代和老年代的大小分配等
+- **jstat：**进行实时命令行的监控，包括堆信息以及实时GC信息等。可以使用jstat -gcutil pid1000来每隔一秒来查看当前的GC信息。
+
+### JVM调优之常用参数配置
+
+**一、堆设置**
+
+- -Xms:初始堆大小
+- -Xmx:最大堆大小
+- -XX:NewSize=n:设置年轻代大小
+- -XX:NewRatio=n:设置年轻代和年老代的比值。如:为3，表示年轻代与年老代比值为1：3，年轻代占整个年轻代年老代和的1/4
+- -XX:SurvivorRatio=n:年轻代中Eden区与两个Survivor区的比值。注意Survivor区有两个。如：3，表示Eden：Survivor=3：2，
+  一个Survivor区占整个年轻代的1/5
+- -XX:MaxPermSize=n:设置持久代大小
+
+**二、收集器设置**
+
+- -XX:+UseSerialGC:设置串行收集器
+- -XX:+UseParallelGC:设置并行收集器
+- -XX:+UseParalledlOldGC:设置并行年老代收集器
+- -XX:+UseConcMarkSweepGC:设置并发收集器
+
+**三、垃圾回收统计信息**
+
+- -XX:+PrintGC
+- -XX:+PrintGCDetails
+- -XX:+PrintGCTimeStamps
+- -Xloggc:filename
+
+**四、并行收集器设置**
+
+- -XX:ParallelGCThreads=n:设置并行收集器收集时使用的CPU数。并行收集线程数。
+- -XX:MaxGCPauseMillis=n:设置并行收集最大暂停时间
+- -XX:GCTimeRatio=n:设置垃圾回收时间占程序运行时间的百分比。公式为1/(1+n)
+
+**五、并发收集器设置**
+
+- -XX:+CMSIncrementalMode:设置为增量模式。适用于单CPU情况。
+- -XX:ParallelGCThreads=n:设置并发收集器年轻代收集方式为并行收集时，使用的CPU数。并行收集线程数。
+
+
+
+### 排查一个线上的服务异常？
+
+- 首先查看当前进程的JVM启动参数，查看内存设置是否存在明显问题。
+- 查看GC日志，看GC频率和时间是否明显异常。
+- 查看当前进程的状态信息top -Hp pid，包括线程个数等信息。
+- jstack pid查看当前的线程状态，是否存在死锁等关键信息。
+- jstat -gcutil pid查看当前进程的GC情况。
+- jmap -heap pid查看当前进程的堆信息，包括使用的垃圾收集器等信息。
+- 用jvisiual工具打开dump二进制文件，分析是什么对象导致了内存泄漏，定位到代码处，进行code review。
+
+一般情况下，我们在测试环境上线新服务的时候，应该重点关注并且查看当前新服务的内存使用以及回收情况，避免新服务种出现内存异常导致服务崩溃的现象发生。
+
 
 ###  引用
 
