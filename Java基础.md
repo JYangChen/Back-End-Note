@@ -716,6 +716,9 @@ GC垃圾收集器发现一个虚引用对象的时候，会将它放进它绑定
 
 ## Object类方法
 
+**Object o=new Object():**
+在java中空对象占八个字节，对象的引用占四个字节。所以上面那条语句所占的空间是4byte+8byte=12byte.java中的内存是以8的倍数来分配的，所以分配的内存是16byte.
+
 ### clone方法
 
 保护方法，实现对象的浅复制，只有实现了Cloneable接口才可以调用该方法，否则抛出CloneNotSupportedException异常。
