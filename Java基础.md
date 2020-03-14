@@ -109,7 +109,9 @@
 
 - 是一个标记注解，@Inherited阐述了某个被标注的类型是被继承的。如果一个使用了@Inherited修饰的annotation类型被用于一个class，则这个annotation将被用于该class的子类
 
+## static
 
+**static修饰的方法，无this指针**
 
 ## 反射机制
 
