@@ -113,6 +113,98 @@
 
 **static修饰的方法，无this指针**
 
+
+
+## 泛型
+
+- 泛型有三种使用方式，分别为：泛型类、泛型接口、泛型方法
+
+- 在编译之后程序会采取去泛型化的措施。也就是说Java中的泛型，只在编译阶段有效。在编译过程中，正确检验泛型结果后，会将泛型的相关信息擦出，并且在对象进入和离开方法的边界处添加类型检查和类型转换的方法。也就是说，泛型信息不会进入到运行时阶段。
+
+  **泛型类型在逻辑上看以看成是多个不同的类型，实际上都是相同的基本类型**
+
+- ```java
+  //泛型类
+  public class Generic<T>{ 
+      //key这个成员变量的类型为T,T的类型由外部指定  
+      private T key;
+  
+      public Generic(T key) { //泛型构造方法形参key的类型也为T，T的类型由外部指定
+          this.key = key;
+      }
+  
+      public T getKey(){ //泛型方法getKey的返回值类型为T，T的类型由外部指定
+          return key;
+      }
+  }
+  
+  //定义一个泛型接口
+  public interface Generator<T> {
+      public T next();
+  }
+  class FruitGenerator<T> implements Generator<T>{
+      @Override
+      public T next() {
+          return null;
+      }
+  }
+  public class FruitGenerator implements Generator<String> {
+  
+      private String[] fruits = new String[]{"Apple", "Banana", "Pear"};
+  
+      @Override
+      public String next() {
+          Random rand = new Random();
+          return f
+              ruits[rand.nextInt(3)];
+      }
+  }
+  ```
+
+- **未传入泛型实参时，与泛型类的定义相同，在声明类的时候，需将泛型的声明也一起加到类中**
+
+  **实现类实现泛型接口时，如已将泛型类型传入实参类型，则所有使用泛型的地方都要替换成传入的实参类型**
+
+- ```java
+  Generic<?> obj
+  ```
+
+  泛型通配符，可以把？看成所有类型的父类。是一种真实的类型。
+
+- ```java
+  /**
+   * 泛型方法的基本介绍
+   * @param tClass 传入的泛型实参
+   * @return T 返回值为T类型
+   * 说明：
+   *     1）public 与 返回值中间<T>非常重要，可以理解为声明此方法为泛型方法。
+   *     2）只有声明了<T>的方法才是泛型方法，泛型类中的使用了泛型的成员方法并不是泛型方法。
+   *     3）<T>表明该方法将使用泛型类型T，此时才可以在方法中使用泛型类型T。
+   *     4）与泛型类的定义一样，此处T可以随便写为任意标识，常见的如T、E、K、V等形式的参数常用于表示泛型。
+   */
+  public <T> T genericMethod(Class<T> tClass)throws InstantiationException ,
+    IllegalAccessException{
+          T instance = tClass.newInstance();
+          return instance;
+  }
+  Object obj = genericMethod(Class.forName("com.test.test"));
+  ```
+
+  **泛型方法**可以出现杂任何地方和任何场景中使用
+
+- 泛型方法与可变参数
+
+  ```java
+  public <T> void printMsg( T... args){
+      for(T t : args){
+          Log.d("泛型测试","t is " + t);
+      }
+  }
+  printMsg("111",222,"aaaa","2323.4",55.55);
+  ```
+
+- 静态方法 用到泛型必须声明
+
 ## 反射机制
 
 
