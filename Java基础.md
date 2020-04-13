@@ -8,8 +8,6 @@
 
 - **重载**
 
-- **java中的强制类型转换只是针对单个对象的，想要偷懒将整个数组转换成另外一种类型的数组是不行的，这和数组初始化时需要一个个来也是类似的**
-
 - **向上转型**
 
   ```java
@@ -29,7 +27,6 @@
 
 - **子类的构造方法总是先调用父类的构造方法，如果子类的构造方法没有明显地指明使用父类的哪个构造方法，子类就调用父类不带参数的构造方法。**
   **而父类没有无参的构造函数，所以子类需要在自己的构造函数中显示的调用父类的构造函数。**
-  
 - **final类不能用来派生子类，因为用final修饰的类不能被继承**
 
 ## **抽象类和接口**
@@ -771,6 +768,10 @@ Java堆的内存划分如图所示，分别为年轻代、Old Memory（老年代
 String str = new String("abc"); // 强引用
 SoftReference<String> softRef = new SoftReference<String>(str); //软引用
 ```
+
+SoftReference<String> softRef = new SoftReference<String>(str); //
+
+软引用
 
 - 弱引用
 
